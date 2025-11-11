@@ -105,7 +105,39 @@ class Worklog:
 def make_timestamp(dt: datetime | None = None) -> str:
     """Return an ISO formatted timestamp understood by Jira's API."""
     dt = dt or datetime.now(timezone.utc)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
     return dt.isoformat(timespec="seconds")
+
+
+def make_comment_payload(comment: str) -> dict | None:
+    """Return a payload compatible with Jira's Atlassian Document Format."""
+
+    text = comment.strip()
+    if not text:
+        return None
+
+    content: list[dict] = []
+    lines = comment.splitlines()
+    for index, line in enumerate(lines):
+        if line:
+            content.append({"type": "text", "text": line})
+        if index != len(lines) - 1:
+            content.append({"type": "hardBreak"})
+
+    if not content:
+        content.append({"type": "text", "text": ""})
+
+    return {
+        "type": "doc",
+        "version": 1,
+        "content": [
+            {
+                "type": "paragraph",
+                "content": content,
+            }
+        ],
+    }
 
 
 def human_join(items: Iterable[str]) -> str:

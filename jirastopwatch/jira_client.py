@@ -8,7 +8,7 @@ from typing import Optional
 import requests
 from requests.auth import HTTPBasicAuth
 
-from .utils import Worklog, make_timestamp
+from .utils import Worklog, make_comment_payload, make_timestamp
 
 LOGGER = logging.getLogger(__name__)
 
@@ -78,10 +78,12 @@ class JiraClient:
     def post_worklog(self, worklog: Worklog) -> str:
         payload = {
             "timeSpentSeconds": worklog.seconds,
-            "comment": worklog.comment,
             "started": make_timestamp(worklog.started),
             "adjustEstimate": worklog.adjust_estimate,
         }
+        comment_payload = make_comment_payload(worklog.comment)
+        if comment_payload is not None:
+            payload["comment"] = comment_payload
         if worklog.adjust_estimate == "new" and worklog.remaining_estimate is not None:
             payload["remainingEstimateSeconds"] = worklog.remaining_estimate
         response = self._request("POST", f"/rest/api/3/issue/{worklog.issue_key}/worklog", json=payload)
