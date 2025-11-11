@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
+import threading
 from typing import Optional
 from urllib.parse import urljoin
 
@@ -36,6 +37,7 @@ class JiraClient:
         self._session = requests.Session()
         self._session.auth = HTTPBasicAuth(self.email, self.api_token)
         self._session.headers.update({"Accept": "application/json"})
+        self._lock = threading.Lock()
 
     def is_configured(self) -> bool:
         return bool(self.base_url and self.email and self.api_token)
@@ -45,7 +47,8 @@ class JiraClient:
             raise RuntimeError("Jira client is not configured")
         url = urljoin(self.base_url, path)
         LOGGER.debug("Jira request %s %s", method, url)
-        response = self._session.request(method, url, timeout=20, **kwargs)
+        with self._lock:
+            response = self._session.request(method, url, timeout=20, **kwargs)
         if response.status_code >= 400:
             LOGGER.error("Jira API call failed: %s", response.text)
             response.raise_for_status()
