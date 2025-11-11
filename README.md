@@ -1,5 +1,21 @@
 # JiraStopWatch-Python
-Python app that logs time against Jira tickets based on users tracked time. 
+Python app that logs time against Jira tickets based on users tracked time.
+
+## Getting Started
+
+1. Install the dependencies using your preferred Python environment (Python 3.10+).
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Launch the desktop application:
+
+   ```bash
+   python -m jirastopwatch
+   ```
+
+3. Open **File → Settings** and provide your Jira Cloud base URL, email address and API token. Once saved, you can test the connection via **File → Test Connection**.
 
 ## Track Multiple Jira Issues
 ![alt text](https://www.jirastopwatch.com/img/screen1.png)
