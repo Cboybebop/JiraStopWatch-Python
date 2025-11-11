@@ -59,6 +59,7 @@ class JiraStopWatchApp(tk.Tk):
         file_menu = tk.Menu(menu_bar, tearoff=False)
         file_menu.add_command(label="Settings", command=self.open_settings_dialog)
         file_menu.add_command(label="Test Connection", command=self.test_connection)
+        file_menu.add_command(label="Clear Settings", command=self.clear_settings)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.on_close)
         menu_bar.add_cascade(label="File", menu=file_menu)
@@ -79,6 +80,16 @@ class JiraStopWatchApp(tk.Tk):
             toolbar,
             text="Post Pending Worklogs",
             command=self.post_pending_worklogs,
+        ).pack(side="left", padx=(8, 0))
+        ttk.Button(
+            toolbar,
+            text="Reset All Timers",
+            command=self.reset_all_timers,
+        ).pack(side="left", padx=(8, 0))
+        ttk.Button(
+            toolbar,
+            text="Remove All Timers",
+            command=self.remove_all_timers,
         ).pack(side="left", padx=(8, 0))
 
         self.timer_canvas = tk.Canvas(self, highlightthickness=0)
@@ -134,6 +145,38 @@ class JiraStopWatchApp(tk.Tk):
         for row in self.timers:
             row.pause_timer()
         self.persist_state()
+
+    def reset_all_timers(self) -> None:
+        if not self.timers:
+            messagebox.showinfo("Reset timers", "There are no timers to reset.")
+            return
+        if not messagebox.askyesno(
+            "Reset all timers",
+            "Reset tracked time for all timers?",
+        ):
+            return
+        for row in self.timers:
+            row.state.seconds = 0
+            row.state.running = False
+            row.state.last_started = None
+            row.refresh_display()
+        self.persist_state()
+        self.set_status("All timers have been reset")
+
+    def remove_all_timers(self) -> None:
+        if not self.timers:
+            messagebox.showinfo("Remove timers", "There are no timers to remove.")
+            return
+        if not messagebox.askyesno(
+            "Remove all timers",
+            "Remove every timer from the list?",
+        ):
+            return
+        for row in list(self.timers):
+            row.destroy()
+        self.timers.clear()
+        self.persist_state()
+        self.set_status("All timers have been removed")
 
     def timer_started(self, row: "TimerRow") -> None:
         # Optionally update issue status when timer starts.
@@ -334,6 +377,21 @@ class JiraStopWatchApp(tk.Tk):
             ),
             on_error=lambda exc: self._handle_error("Failed to test connection", exc),
         )
+
+    def clear_settings(self) -> None:
+        if not messagebox.askyesno(
+            "Clear settings",
+            "Clear all saved Jira connection settings?",
+        ):
+            return
+        self.settings = AppSettings()
+        self.client = JiraClient(
+            self.settings.base_url,
+            self.settings.email,
+            self.settings.api_token,
+        )
+        self.persist_state()
+        self.set_status("Settings cleared. Configure Jira to continue.")
 
     def show_about(self) -> None:
         messagebox.showinfo(
