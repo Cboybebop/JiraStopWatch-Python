@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import logging
 from typing import Optional
+from urllib.parse import urljoin
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -42,7 +43,7 @@ class JiraClient:
     def _request(self, method: str, path: str, **kwargs) -> requests.Response:
         if not self.is_configured():
             raise RuntimeError("Jira client is not configured")
-        url = f"{self.base_url}{path}"
+        url = urljoin(self.base_url, path)
         LOGGER.debug("Jira request %s %s", method, url)
         response = self._session.request(method, url, timeout=20, **kwargs)
         if response.status_code >= 400:
