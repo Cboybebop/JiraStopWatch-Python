@@ -8,6 +8,7 @@ from typing import Optional
 from urllib.parse import urljoin
 
 import requests
+from requests import HTTPError
 from requests.auth import HTTPBasicAuth
 
 from .utils import Worklog, make_comment_payload, make_timestamp
@@ -68,9 +69,21 @@ class JiraClient:
             "maxResults": max_results,
             "fields": ["summary"],
         }
-        data = self._request("POST", "/rest/api/3/search", json=payload).json()
+        try:
+            data = self._request("POST", "/rest/api/3/search/jql", json=payload).json()
+        except HTTPError as exc:
+            response = getattr(exc, "response", None)
+            if response is not None and response.status_code in {404, 405}:
+                data = self._request("POST", "/rest/api/3/search", json=payload).json()
+            else:
+                raise
         issues = []
-        for issue in data.get("issues", []):
+        issue_items = data.get("issues")
+        if issue_items is None and "results" in data:
+            issue_items = []
+            for result in data.get("results", []):
+                issue_items.extend(result.get("issues", []))
+        for issue in issue_items or []:
             fields = issue.get("fields", {})
             issues.append(JiraIssue(key=issue["key"], summary=fields.get("summary", "")))
         return issues
