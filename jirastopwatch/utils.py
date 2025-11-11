@@ -103,12 +103,14 @@ class Worklog:
 
 
 def make_timestamp(dt: datetime | None = None) -> str:
-    """Return an ISO formatted timestamp understood by Jira's API."""
+    """Return a Jira worklog timestamp with millisecond precision."""
+
     dt = dt or datetime.now(timezone.utc)
     if dt.tzinfo is None:
-        local_timezone = datetime.now().astimezone().tzinfo
-        dt = dt.replace(tzinfo=local_timezone)
-    return dt.isoformat(timespec="seconds")
+        dt = dt.astimezone()
+
+    milliseconds = dt.microsecond // 1000
+    return f"{dt.strftime('%Y-%m-%dT%H:%M:%S')}.{milliseconds:03d}{dt.strftime('%z')}"
 
 
 def make_comment_payload(comment: str) -> dict | None:
