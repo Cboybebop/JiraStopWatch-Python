@@ -106,7 +106,8 @@ def make_timestamp(dt: datetime | None = None) -> str:
     """Return an ISO formatted timestamp understood by Jira's API."""
     dt = dt or datetime.now(timezone.utc)
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        local_timezone = datetime.now().astimezone().tzinfo
+        dt = dt.replace(tzinfo=local_timezone)
     return dt.isoformat(timespec="seconds")
 
 
