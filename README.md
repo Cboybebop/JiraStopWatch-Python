@@ -8,6 +8,13 @@
 
 ---
 
+## Overview
+
+JiraStopWatch-Python streamlines time-tracking and worklog submission for Jira Cloud users. It supports multiple concurrent issue timers, persistent state saving and secure API-based authentication.  
+This tool is ideal for users who regularly switch between issues and require accurate, timestamped worklogs without manual Jira entry.
+
+---
+
 ## Getting Started
 
 1. Install the dependencies using your preferred Python environment (Python 3.10+).
@@ -26,11 +33,13 @@
 
 ---
 
-## Overview
 
-JiraStopWatch-Python streamlines time-tracking and worklog submission for Jira Cloud users. It supports multiple concurrent issue timers, persistent state saving and secure API-based authentication.  
-This tool is ideal for users who regularly switch between issues and require accurate, timestamped worklogs without manual Jira entry.
+## Building Application
+1. You can build an application using your preferred Python environment (Python 3.10+).
 
+   ```bash
+   pyinstaller --noconfirm --onefile --windowed --name JiraStopWatch jirastopwatch/__main__.py
+   ```
 ---
 
 ## Tracking Multiple Jira Issues
