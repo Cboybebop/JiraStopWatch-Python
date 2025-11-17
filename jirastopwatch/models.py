@@ -48,6 +48,7 @@ class AppSettings:
     api_token: str = ""
     default_filter_id: str = ""
     filter_cache: dict[str, str] = field(default_factory=dict)
+    dark_mode_enabled: bool = False
 
     def serialize(self) -> dict:
         return {
@@ -56,6 +57,7 @@ class AppSettings:
             "api_token": self.api_token,
             "default_filter_id": self.default_filter_id,
             "filter_cache": dict(self.filter_cache),
+            "dark_mode_enabled": self.dark_mode_enabled,
         }
 
     @classmethod
@@ -67,6 +69,7 @@ class AppSettings:
         settings.api_token = payload.get("api_token", "")
         settings.default_filter_id = payload.get("default_filter_id", "")
         settings.filter_cache = dict(payload.get("filter_cache", {}))
+        settings.dark_mode_enabled = bool(payload.get("dark_mode_enabled", False))
         return settings
 
 

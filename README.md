@@ -89,9 +89,16 @@ These features ensure complete flexibility for accurate work tracking.
 
 JiraStopWatch-Python automatically preserves critical data on exit:
 
-- Jira API tokens (securely stored).  
-- Issue keys and timer states.  
+- Jira API tokens (securely stored).
+- Issue keys and timer states.
 - Optional ongoing timer tracking across restarts.
+
+---
+
+## Appearance Options
+
+- Toggle **View → Dark mode** to switch between the default system look and a darker palette.
+- The preference is saved in your profile so the app reopens with the same theme you selected.
 
 ---
 

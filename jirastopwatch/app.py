@@ -37,6 +37,9 @@ class JiraStopWatchApp(tk.Tk):
         self.configure(padx=12, pady=12)
 
         self.settings: AppSettings = load_settings()
+        self.style = ttk.Style(self)
+        self.default_theme = self.style.theme_use()
+        self.dark_mode_var = tk.BooleanVar(value=self.settings.dark_mode_enabled)
         self.client = JiraClient(
             self.settings.base_url,
             self.settings.email,
@@ -47,6 +50,7 @@ class JiraStopWatchApp(tk.Tk):
         self.pending_worklogs: list[PendingWorklog] = load_pending_worklogs()
 
         self._build_ui()
+        self._apply_theme()
         self._load_timers()
         self._update_pending_panel()
 
@@ -63,6 +67,14 @@ class JiraStopWatchApp(tk.Tk):
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.on_close)
         menu_bar.add_cascade(label="File", menu=file_menu)
+
+        view_menu = tk.Menu(menu_bar, tearoff=False)
+        view_menu.add_checkbutton(
+            label="Dark mode",
+            variable=self.dark_mode_var,
+            command=self.toggle_dark_mode,
+        )
+        menu_bar.add_cascade(label="View", menu=view_menu)
 
         help_menu = tk.Menu(menu_bar, tearoff=False)
         help_menu.add_command(label="About", command=self.show_about)
@@ -109,6 +121,49 @@ class JiraStopWatchApp(tk.Tk):
 
         status_bar = ttk.Label(self, textvariable=self.status_var, anchor="w")
         status_bar.pack(fill="x")
+
+    def toggle_dark_mode(self) -> None:
+        enabled = self.dark_mode_var.get()
+        self.settings.dark_mode_enabled = enabled
+        self._apply_theme()
+        self.persist_state()
+
+    def _apply_theme(self) -> None:
+        dark_enabled = self.dark_mode_var.get()
+        if dark_enabled:
+            bg_color = "#1f1f1f"
+            fg_color = "#f5f5f5"
+            accent_color = "#2b2b2b"
+            entry_bg = "#2a2a2a"
+            self.style.theme_use("clam")
+            self.style.configure("TFrame", background=bg_color, foreground=fg_color)
+            self.style.configure("TLabelframe", background=bg_color, foreground=fg_color)
+            self.style.configure("TLabelframe.Label", background=bg_color, foreground=fg_color)
+            self.style.configure("TLabel", background=bg_color, foreground=fg_color)
+            self.style.configure("TButton", background=accent_color, foreground=fg_color)
+            self.style.configure("TEntry", fieldbackground=entry_bg, foreground=fg_color)
+            self.style.map("TButton", background=[("active", "#3a3a3a")])
+        else:
+            self.style.theme_use(self.default_theme)
+            bg_color = self.style.lookup("TFrame", "background") or self.cget("bg")
+            fg_color = self.style.lookup("TLabel", "foreground") or "#000000"
+            entry_bg = self.style.lookup("TEntry", "fieldbackground") or "#ffffff"
+            button_bg = self.style.lookup("TButton", "background") or bg_color
+            button_fg = self.style.lookup("TButton", "foreground") or fg_color
+            self.style.configure("TFrame", background=bg_color, foreground=fg_color)
+            self.style.configure("TLabelframe", background=bg_color, foreground=fg_color)
+            self.style.configure("TLabelframe.Label", background=bg_color, foreground=fg_color)
+            self.style.configure("TLabel", background=bg_color, foreground=fg_color)
+            self.style.configure("TButton", background=button_bg, foreground=button_fg)
+            self.style.configure("TEntry", fieldbackground=entry_bg, foreground=fg_color)
+            self.style.map("TButton", background=[])
+
+        self.configure(bg=bg_color)
+        if hasattr(self, "timer_canvas"):
+            self.timer_canvas.configure(bg=bg_color)
+        if hasattr(self, "pending_panel"):
+            panel_bg = entry_bg if dark_enabled else bg_color
+            self.pending_panel.apply_theme(fg_color, panel_bg)
 
     def _load_timers(self) -> None:
         states = load_state()
@@ -903,6 +958,15 @@ class PendingWorklogPanel(ttk.Labelframe):
         )
         ttk.Button(button_row, text="Remove selected", command=self._remove_selected).pack(
             side="left", padx=(6, 0)
+        )
+
+    def apply_theme(self, fg_color: str, bg_color: str) -> None:
+        selection_bg = fg_color if fg_color.startswith("#") else "#0a84ff"
+        self.listbox.configure(
+            bg=bg_color,
+            fg=fg_color,
+            selectbackground=selection_bg,
+            selectforeground=bg_color,
         )
 
     def refresh(self, worklogs: list[PendingWorklog]) -> None:
